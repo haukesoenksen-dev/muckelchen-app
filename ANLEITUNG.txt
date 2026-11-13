@@ -1,0 +1,22 @@
+MUCKELCHENS BÄRCHEN-COUNTDOWN – Installation mit Windows-PC
+
+ENTHALTEN
+- Countdown bis 15.11.2026, 12:30 Uhr (lokale iPhone-Zeit)
+- Liebesbotschaften, die innerhalb der geöffneten App alle 30 Minuten wechseln
+- Als Web-App zum Home-Bildschirm hinzufügbar
+
+WICHTIGE EINSCHRÄNKUNG
+Diese einfache Version kann die Botschaft automatisch wechseln, solange die App geöffnet ist.
+Sie kann KEINE zuverlässigen 30-Minuten-Mitteilungen senden, wenn die App geschlossen ist.
+Dafür ist ein zusätzlicher Web-Push-Server erforderlich. iOS unterstützt Web-Push für Home-Bildschirm-Web-Apps ab iOS 16.4, wenn ein Server die Push-Nachrichten versendet.
+
+VERÖFFENTLICHUNG (kostenloser Weg über GitHub Pages)
+1. Auf github.com einloggen oder kostenloses Konto erstellen.
+2. Ein neues öffentliches Repository anlegen, z. B. muckelchen-app.
+3. Alle Dateien aus diesem ZIP in das Repository hochladen (index.html, manifest.webmanifest, sw.js, icon-192.png, icon-512.png).
+4. In GitHub: Settings > Pages > Deploy from a branch > Branch: main > /(root) > Save.
+5. Die von GitHub angezeigte HTTPS-Adresse auf dem iPhone in Safari öffnen.
+6. In Safari auf Teilen tippen > Zum Home-Bildschirm > Hinzufügen.
+7. Das Muckelchen-Symbol auf dem Home-Bildschirm antippen.
+
+Hinweis: Die Menünamen können je nach iOS-Version leicht abweichen.

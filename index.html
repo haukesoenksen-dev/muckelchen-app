@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f8e9e5">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Muckelchen">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <title>Muckelchens Bärchen-Countdown</title>
+  <style>
+    :root { --ink:#70464b; --rose:#b85e70; --pink:#f8e9e5; }
+    * { box-sizing:border-box; }
+    body {
+      margin:0; min-height:100vh; padding: max(22px, env(safe-area-inset-top)) 18px max(24px, env(safe-area-inset-bottom));
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color:var(--ink);
+      background:linear-gradient(145deg,#f8e9e5,#fff5ec); display:flex; justify-content:center;
+    }
+    main { width:min(100%,520px); text-align:center; }
+    h1 { font-size:clamp(28px,7vw,38px); margin:14px 0 4px; }
+    .bear { font-size:100px; line-height:1.35; filter:drop-shadow(0 8px 8px #9c687033); }
+    .sub { font-size:18px; font-weight:650; margin:8px 0 18px; }
+    .tiles { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+    .tile { background:#ffffffd9; border-radius:17px; padding:14px 4px; box-shadow:0 5px 18px #8c596012; }
+    .num { display:block; font-size:clamp(23px,6vw,32px); font-weight:800; font-variant-numeric:tabular-nums; color:var(--rose); }
+    .label { font-size:11px; color:#896d70; }
+    .date { margin:16px 0 22px; color:#896d70; font-weight:600; }
+    .love { background:#ffffffa8; border:1px solid #fff; border-radius:24px; padding:20px 18px; box-shadow:0 8px 24px #8c596014; }
+    .love h2 { margin:0 0 12px; color:var(--rose); font-size:19px; }
+    #message { min-height:84px; display:grid; place-items:center; font-size:20px; line-height:1.4; font-weight:650; }
+    button { border:0; border-radius:999px; padding:15px 20px; font-size:16px; font-weight:700; background:var(--rose); color:white; width:100%; margin-top:14px; cursor:pointer; }
+    button.secondary { background:#fff; color:var(--rose); border:1px solid #efd5d7; }
+    .note { font-size:12px; line-height:1.45; color:#92777a; margin:18px 6px 0; }
+    .status { font-size:13px; margin-top:12px; color:#79585d; min-height:18px; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Für mein Muckelchen ❤️</h1>
+  <div class="bear" aria-label="Teddybär">🐻</div>
+  <div class="sub">Bis dein Bärchen wieder bei dir ist …</div>
+  <section class="tiles" aria-label="Countdown">
+    <div class="tile"><span class="num" id="days">00</span><span class="label">Tage</span></div>
+    <div class="tile"><span class="num" id="hours">00</span><span class="label">Stunden</span></div>
+    <div class="tile"><span class="num" id="minutes">00</span><span class="label">Minuten</span></div>
+    <div class="tile"><span class="num" id="seconds">00</span><span class="label">Sekunden</span></div>
+  </section>
+  <div class="date">15. November 2026 · 12:30 Uhr</div>
+  <section class="love">
+    <h2>💌 Eine Nachricht für dich</h2>
+    <div id="message" aria-live="polite">Mein Muckelchen, du bist mein schönster Gedanke. ❤️</div>
+    <button class="secondary" id="next">Noch eine Liebeserklärung 💗</button>
+  </section>
+  <button id="notify">Mitteilungen einschalten 🔔</button>
+  <div class="status" id="status"></div>
+  <p class="note">Die Liebesbotschaft wechselt automatisch alle 30 Minuten, solange die App geöffnet ist. Für Mitteilungen bei geschlossener App ist ein zusätzlicher Push-Dienst nötig.</p>
+  <p class="note">Ich vermisse dich, Muckelchen. Jede Sekunde zählt. ❤️</p>
+</main>
+<script>
+  const reunion = new Date(2026, 10, 15, 12, 30, 0); // lokale iPhone-Zeit
+  const notes = [
+    "Mein Muckelchen, du bist mein schönster Gedanke. ❤️",
+    "Ein Bärchen vermisst sein Muckelchen ganz doll. 🐻",
+    "Auch wenn wir gerade nicht zusammen sind: Mein Herz ist bei dir.",
+    "Ich würde dich jetzt am liebsten ganz fest knuddeln.",
+    "Du bist mein Lieblingsmensch – heute, morgen und für immer.",
+    "Jede Minute bringt mich meinem Muckelchen näher. 💕",
+    "Eine ganz große Bärenumarmung nur für dich!",
+    "Du machst selbst gewöhnliche Tage wunderschön.",
+    "Ich schicke dir tausend Küsse und eine extra große Umarmung.",
+    "Muckelchen, du fehlst mir. Ich freue mich auf dich.",
+    "Du bist mein Zuhause-Gefühl, auch wenn du gerade nicht hier bist.",
+    "Für dich hat mein Herz immer einen extra großen Platz.",
+    "Bärchen denkt an dich. Jetzt. Und in jeder einzelnen Minute.",
+    "Ich kann es kaum erwarten, dich wieder in die Arme zu schließen.",
+    "Wenn ich an dich denke, muss ich einfach lächeln. ❤️"
+  ];
+  let index = 0;
+  const $ = id => document.getElementById(id);
+  function updateCountdown() {
+    let ms = Math.max(0, reunion.getTime() - Date.now());
+    const total = Math.floor(ms / 1000);
+    $("days").textContent = String(Math.floor(total / 86400)).padStart(2,"0");
+    $("hours").textContent = String(Math.floor(total % 86400 / 3600)).padStart(2,"0");
+    $("minutes").textContent = String(Math.floor(total % 3600 / 60)).padStart(2,"0");
+    $("seconds").textContent = String(total % 60).padStart(2,"0");
+    if (ms === 0) $("message").textContent = "Dein Bärchen ist da! Jetzt wird geknuddelt! 🐻❤️";
+  }
+  function showNext() {
+    index = (index + 1) % notes.length;
+    $("message").textContent = notes[index];
+  }
+  $("next").addEventListener("click", showNext);
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+  // Wechsel der Liebesbotschaft im 30-Minuten-Takt, solange die Web-App aktiv ist.
+  setInterval(showNext, 30 * 60 * 1000);
+
+  $("notify").addEventListener("click", async () => {
+    if (!("Notification" in window)) {
+      $("status").textContent = "Dieser Browser unterstützt keine Mitteilungen.";
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    $("status").textContent = permission === "granted"
+      ? "Mitteilungen erlaubt. Automatische Erinnerungen funktionieren nur, solange die App geöffnet bleibt."
+      : "Mitteilungen wurden nicht erlaubt.";
+    if (permission === "granted") {
+      new Notification("Eine Nachricht für Muckelchen ❤️", { body: notes[index] });
+    }
+  });
+
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    navigator.serviceWorker.register("./sw.js").catch(() => {});
+  }
+</script>
+</body>
+</html>
