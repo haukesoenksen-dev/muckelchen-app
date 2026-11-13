@@ -35,19 +35,6 @@
     .note { font-size:12px; line-height:1.45; color:#92777a; margin:18px 6px 0; }
     .status { font-size:13px; margin-top:12px; color:#79585d; min-height:18px; }
   </style>
-
-  <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
-  <script>
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    OneSignalDeferred.push(async function(OneSignal) {
-      await OneSignal.init({
-        appId: "bdcd129a-581f-4ec4-865c-7e76b26d910e",
-        serviceWorkerPath: "/muckelchen-app/OneSignalSDKWorker.js",
-        serviceWorkerParam: { scope: "/muckelchen-app/" }
-      });
-    });
-  </script>
-
 </head>
 <body>
 <main>
@@ -68,7 +55,7 @@
   </section>
   <button id="notify">Mitteilungen einschalten 🔔</button>
   <div class="status" id="status"></div>
-  <p class="note">Die Liebesbotschaft wechselt automatisch alle 30 Minuten, solange die App geöffnet ist. Aktiviere Push-Mitteilungen, damit Muckelchen auch bei geschlossener App Nachrichten empfangen kann.</p>
+  <p class="note">Die Liebesbotschaft wechselt automatisch alle 30 Minuten, solange die App geöffnet ist. Für Mitteilungen bei geschlossener App ist ein zusätzlicher Push-Dienst nötig.</p>
   <p class="note">Ich vermisse dich, Muckelchen. Jede Sekunde zählt. ❤️</p>
 </main>
 <script>
@@ -111,27 +98,22 @@
   // Wechsel der Liebesbotschaft im 30-Minuten-Takt, solange die Web-App aktiv ist.
   setInterval(showNext, 30 * 60 * 1000);
 
-  $("notify").addEventListener("click", () => {
-    if (!("serviceWorker" in navigator) || !("Notification" in window)) {
-      $("status").textContent = "Web-Push wird von diesem Browser nicht unterstützt.";
+  $("notify").addEventListener("click", async () => {
+    if (!("Notification" in window)) {
+      $("status").textContent = "Dieser Browser unterstützt keine Mitteilungen.";
       return;
     }
-    $("status").textContent = "Die Mitteilungsfreigabe wird geöffnet …";
-    window.OneSignalDeferred = window.OneSignalDeferred || [];
-    window.OneSignalDeferred.push(async function(OneSignal) {
-      try {
-        await OneSignal.Slidedown.promptPush();
-        $("status").textContent = "Bitte bestätige die Mitteilungen für Muckelchen. ❤️";
-      } catch (error) {
-        $("status").textContent = "Die Anmeldung konnte nicht gestartet werden. Bitte prüfe die iPhone-Einstellungen.";
-        console.error("OneSignal push prompt error:", error);
-      }
-    });
+    const permission = await Notification.requestPermission();
+    $("status").textContent = permission === "granted"
+      ? "Mitteilungen erlaubt. Automatische Erinnerungen funktionieren nur, solange die App geöffnet bleibt."
+      : "Mitteilungen wurden nicht erlaubt.";
+    if (permission === "granted") {
+      new Notification("Eine Nachricht für Muckelchen ❤️", { body: notes[index] });
+    }
   });
 
-  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("./sw.js").catch(() => {});
-  }
+  // OneSignal verwaltet den Service Worker für Push-Mitteilungen.
+  // Keinen zweiten Service Worker mit demselben Scope registrieren.
 </script>
 </body>
 </html>
